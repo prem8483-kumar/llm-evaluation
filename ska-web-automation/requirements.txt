@@ -1,0 +1,5 @@
+pytest==8.4.1
+playwright==1.54.0
+ragas==0.3.2
+boto3==1.40.19
+Pillow==11.3.0
