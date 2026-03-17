@@ -1,0 +1,98 @@
+name: "build-app-evaluator.yml"
+
+permissions:
+  id-token: write
+  contents: read
+
+on:
+  workflow_dispatch:
+    inputs:
+
+      environment:
+        description: "Environment"
+        type: environment
+        required: true
+        default: dev
+
+jobs:
+  build-and-deploy:
+    environment: ${{ inputs.environment }}
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Generate GH app token
+        uses: tibdex/github-app-token@v2.1.0
+        id: app-token
+        with:
+          app_id: ${{ secrets.APP_ID }}
+          private_key: ${{ secrets.APP_KEY }}
+
+      - run: echo 'GITHUB_TOKEN=${{ steps.app-token.outputs.token }}' >> $GITHUB_ENV
+
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          ref: ${{ github.head_ref }}
+          persist-credentials: false
+
+      - name: Assume AWS Management Role
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOYMENT_ROLE }}
+          role-duration-seconds: 3600
+          aws-region: eu-west-1
+          role-session-name: ManagementRole
+
+      - name: Assume AWS Account Role
+        run: |
+            CREDENTIALS=$(aws sts assume-role \
+            --role-arn "arn:aws:iam::${{ vars.ACCOUNT_ID }}:role/githubactions-ci" \
+            --role-session-name MySessionName \
+            --query "Credentials" --output json --region ${{ vars.AWS_REGION }})
+            
+            echo "AWS_ACCESS_KEY_ID=$(echo $CREDENTIALS | jq -r '.AccessKeyId')" >> $GITHUB_ENV
+            echo "AWS_SECRET_ACCESS_KEY=$(echo $CREDENTIALS | jq -r '.SecretAccessKey')" >> $GITHUB_ENV
+            echo "AWS_SESSION_TOKEN=$(echo $CREDENTIALS | jq -r '.SessionToken')" >> $GITHUB_ENV
+
+      - name: Verify AWS Credentials
+        run: aws sts get-caller-identity
+
+      - name: Build, tag, and push Docker image to Amazon ECR
+        run: |
+          
+          # Define Docker image tag
+          TAG=$(git rev-parse --short HEAD)
+          LATEST_TAG=latest
+          echo "Docker image tag: $TAG"
+          
+          # Define Docker repository and registry
+          ECR_REGISTRY=${{ vars.ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com
+          ECR_REPOSITORY=${{ vars.SERVICE_NAME }}-rag-app-evaluator
+          echo "ECR registry: $ECR_REGISTRY"
+          echo "ECR repository: $ECR_REPOSITORY"
+          
+          # Build Docker image
+          echo "Starting Docker Image build"
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$LATEST_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:$TAG rag-app-evaluator/
+          
+          # Authenticate Docker to ECR
+          echo "Authenticating Docker to ECR"
+          aws ecr get-login-password --region ${{ vars.AWS_REGION }} | docker login --username AWS --password-stdin $ECR_REGISTRY
+        
+          # Remove old latest tag from ECR
+          echo "Cleaning up old 'latest' tag from ECR"
+          aws ecr batch-delete-image --repository-name $ECR_REPOSITORY --image-ids imageTag=$LATEST_TAG
+          
+          # Push both tags (latest first)
+          echo "Pushing latest tag to ECR"
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$LATEST_TAG
+          
+          echo "Pushing commit-specific tag to ECR"
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$TAG
+          
+          echo "Both images pushed successfully to ECR"
+
+            
+
