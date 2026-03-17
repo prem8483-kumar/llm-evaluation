@@ -1,8 +1,8 @@
 from evaluate_raga_metrics import evaluate_raga_metrics, load_test_set_from_s3_bucket, upload_result_to_s3_bucket
 
-bucket = "dtpl-dls-s3-dev-cur-data-science-restricted"
-test_set_key = "smart_knowledge_assistant/test-sets/Hearings & Appeals.jsonl"
-evaluation_result_key = "smart_knowledge_assistant/evaluation-results/Hearings & Appeals.json"
+bucket = ""
+test_set_key = ""
+evaluation_result_key = ""
 
 
 def evaluate_metrics():
