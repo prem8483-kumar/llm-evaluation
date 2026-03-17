@@ -3,9 +3,9 @@ from generate_testset import load_documents_from_s3_bucket, generate_test_set, u
 
 def create_test_set():
 
-    bucket = "dtpl-dls-s3-dev-cur-data-science-restricted"
-    document_key = "smart_knowledge_assistant/source-pdfs/Hearings & Appeals.pdf"
-    test_set_key = "smart_knowledge_assistant/test-sets/Hearings & Appeals.jsonl"
+    bucket = ""
+    document_key = ""
+    test_set_key = ""
 
     print('Loading docs')
     documents = load_documents_from_s3_bucket(bucket, document_key)
