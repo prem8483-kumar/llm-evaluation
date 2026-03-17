@@ -3,11 +3,11 @@ import boto3
 
 def run_testset_generator():
 
-    cluster_name = "chainlit-ecs-cluster"
-    task_definition = "rag-testset-generator:4"
+    cluster_name = ""
+    task_definition = ""
     launch_type = 'FARGATE'
-    subnet_ids = ["subnet-0d877bea083cdec83"]
-    security_group_ids = ["sg-065c67e1a06ee5bdb"]
+    subnet_ids = [""]
+    security_group_ids = [""]
 
     network_configuration = {
         'awsvpcConfiguration': {
