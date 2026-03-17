@@ -4,8 +4,8 @@ from pathlib import Path
 from playwright.sync_api import sync_playwright
 import pytest
 
-AUTH_STATE_FILE = "okta_auth.json"
-SKA_WEB_URL = "https://intg.smart-knowledge-assistant.starsaccount.com/"
+AUTH_STATE_FILE = ""
+SKA_WEB_URL = ""
 
 
 @pytest.fixture(scope="session")
