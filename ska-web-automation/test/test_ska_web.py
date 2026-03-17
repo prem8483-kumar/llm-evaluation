@@ -4,8 +4,8 @@ from main.s3_helper import load_test_set_from_s3_bucket, upload_test_set_to_s3_b
 from test.conftest import SKA_WEB_URL
 
 use_case = "SharePoint"
-bucket = "dtpl-dls-s3-dev-cur-data-science-restricted"
-test_set_key = "smart_knowledge_assistant/rag-test-sets/Hearings & Appeals.jsonl"
+bucket = ""
+test_set_key = ""
 
 
 def test_ska_app_with_saved_auth(browser_context):
