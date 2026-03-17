@@ -1,4 +1,4 @@
-name: "ska-web-automation"
+name: "rag-web-automation"
 
 permissions:
   id-token: write
@@ -16,7 +16,7 @@ on:
 
 
 jobs:
-  ska-web-automation:
+  rag-web-automation:
     environment:  ${{ inputs.environment }}
     runs-on: ubuntu-latest
 
@@ -46,7 +46,7 @@ jobs:
           cache: "pip"
 
       - name: Install Dependencies
-        working-directory: ska-web-automation
+        working-directory: rag-web-automation
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
@@ -78,8 +78,8 @@ jobs:
         run: aws sts get-caller-identity
 
 
-      - name: Run SKA Web Automation
-        working-directory: ska-web-automation
+      - name: Run RAG Web Automation
+        working-directory: rag-web-automation
         run: |
           pytest -s
         
